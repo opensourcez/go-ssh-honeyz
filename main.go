@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net"
+	"os"
 	"strings"
 
 	"golang.org/x/crypto/ssh"
@@ -14,7 +15,7 @@ func main() {
 	Listen("5555")
 }
 func Listen(port string) {
-	sshConfig, listener := setupSSHListener(port)
+	sshConfig, listener := setupSSHListener(os.Args[1])
 	processConnections(&sshConfig, listener)
 }
 
