@@ -12,14 +12,6 @@ import (
 )
 
 func main() {
-	Listen("5555")
-}
-func Listen(port string) {
-	sshConfig, listener := setupSSHListener(os.Args[1])
-	processConnections(&sshConfig, listener)
-}
-
-func setupSSHListener(port string) (ssh.ServerConfig, net.Listener) {
 	sshConfig := &ssh.ServerConfig{
 		PasswordCallback: func(c ssh.ConnMetadata, pass []byte) (*ssh.Permissions, error) {
 			remoteAddr := c.RemoteAddr().String()
@@ -40,18 +32,14 @@ func setupSSHListener(port string) (ssh.ServerConfig, net.Listener) {
 	}
 	sshConfig.AddHostKey(private)
 
-	portComplete := fmt.Sprintf(":%s", port)
+	portComplete := fmt.Sprintf(":%s", os.Args[1])
 	listener, err := net.Listen("tcp4", portComplete)
 	if err != nil {
-		log.Fatalf("failed to listen on *:%s", port)
+		log.Fatalf("failed to listen on *:%s", os.Args[1])
 	}
 
-	log.Printf("listening on %s", port)
+	log.Printf("listening on %s", os.Args[1])
 
-	return *sshConfig, listener
-}
-
-func processConnections(sshConfig *ssh.ServerConfig, listener net.Listener) {
 	for {
 		tcpConn, err := listener.Accept()
 		if err != nil {
@@ -64,9 +52,9 @@ func processConnections(sshConfig *ssh.ServerConfig, listener net.Listener) {
 
 func handleConnection(sshConfig *ssh.ServerConfig, tcpConn net.Conn) {
 	defer tcpConn.Close()
-
 	sshConn, _, _, err := ssh.NewServerConn(tcpConn, sshConfig)
 	if err != nil {
+		log.Println("Connection error..", err)
 	} else {
 		sshConn.Close()
 	}
