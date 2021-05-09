@@ -11,14 +11,14 @@ import (
 )
 
 func main() {
-
+	Listen("5555")
 }
-func Listen(port string, hostKey string) {
-	sshConfig, listener := setupSSHListener(port, hostKey)
+func Listen(port string) {
+	sshConfig, listener := setupSSHListener(port)
 	processConnections(&sshConfig, listener)
 }
 
-func setupSSHListener(port string, hostKey string) (ssh.ServerConfig, net.Listener) {
+func setupSSHListener(port string) (ssh.ServerConfig, net.Listener) {
 	sshConfig := &ssh.ServerConfig{
 		PasswordCallback: func(c ssh.ConnMetadata, pass []byte) (*ssh.Permissions, error) {
 			remoteAddr := c.RemoteAddr().String()
@@ -28,9 +28,9 @@ func setupSSHListener(port string, hostKey string) (ssh.ServerConfig, net.Listen
 		},
 	}
 
-	privateBytes, err := ioutil.ReadFile(hostKey)
+	privateBytes, err := ioutil.ReadFile("sshkey")
 	if err != nil {
-		log.Fatalf("Failed to load private key %s.  Run make gen_ssh_key %s", hostKey, hostKey)
+		log.Fatalf("Failed to load private key.  Run make gen_ssh_key")
 	}
 
 	private, err := ssh.ParsePrivateKey(privateBytes)
@@ -56,6 +56,7 @@ func processConnections(sshConfig *ssh.ServerConfig, listener net.Listener) {
 		if err != nil {
 			continue
 		}
+		log.Println("got connection !!")
 		go handleConnection(sshConfig, tcpConn)
 	}
 }
