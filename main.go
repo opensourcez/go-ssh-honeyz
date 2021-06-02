@@ -16,9 +16,14 @@ func main() {
 		PasswordCallback: func(c ssh.ConnMetadata, pass []byte) (*ssh.Permissions, error) {
 			remoteAddr := c.RemoteAddr().String()
 			ip := remoteAddr[0:strings.Index(remoteAddr, ":")]
-			log.Printf("ip=[%s], username=[%s], password=[%s], version=[%s]", ip, c.User(), pass, c.ClientVersion())
+			log.Printf("ip=[%s], u=[%s], pa=[%s], v=[%s]", ip, c.User(), pass, c.ClientVersion())
 			return nil, fmt.Errorf("invalid credentials")
 		},
+		ServerVersion: "SSH-2.0-OpenSSH_8.4",
+		// TODO add support for banners, seems the current implementation is broken
+		// BannerCallback: func(conn ssh.ConnMetadata) string {
+		// return "banner-lol"
+		// },
 	}
 
 	privateBytes, err := ioutil.ReadFile(os.Args[2])
@@ -45,7 +50,6 @@ func main() {
 		if err != nil {
 			continue
 		}
-		log.Println("got connection !!")
 		go handleConnection(sshConfig, tcpConn)
 	}
 }
@@ -54,7 +58,7 @@ func handleConnection(sshConfig *ssh.ServerConfig, tcpConn net.Conn) {
 	defer tcpConn.Close()
 	sshConn, _, _, err := ssh.NewServerConn(tcpConn, sshConfig)
 	if err != nil {
-		log.Println("Connection error..", err)
+		// log.Println("Connection error..", err)
 	} else {
 		sshConn.Close()
 	}
